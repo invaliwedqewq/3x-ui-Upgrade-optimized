@@ -2,9 +2,14 @@ worker_processes 1;
 events { worker_connections 1024; }
 
 http {
-    include mime.types;
+    include /etc/nginx/mime.types;
+    default_type application/octet-stream;
 
-    # تشخیص اینکه درخواست از یک اپ/کلاینت VPN میاد یا از مرورگر آدم
+    # غیرفعال کردن لاگ دسترسی برای جلوگیری از مصرف فضای دیسک در Railway
+    access_log off;
+    error_log /var/log/nginx/error.log warn;
+
+    # تشخیص اینکه درخواست از یک اپ/کلاینت VPN میاد یا از مرورگر
     map $http_user_agent $is_client_app {
         default 0;
         "~*v2ray"          1;
@@ -30,8 +35,11 @@ http {
 
     server {
         listen ${NGINX_PORT};
+        
+        # افزایش سایز هدر برای ساب‌های طولانی
+        large_client_header_buffers 4 32k;
 
-        # مسیر پنل وب (فوروارد به پورت داخلی 2053 که x-ui روش گوش می‌ده)
+        # مسیر پنل وب
         location /managepanel/ {
             proxy_pass http://127.0.0.1:2053/managepanel/;
             proxy_http_version 1.1;
@@ -42,7 +50,6 @@ http {
             proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
             proxy_set_header X-Forwarded-Proto $scheme;
 
-            # جایگزینی برند Heimdall با X4G در لحظه‌ی عبور پاسخ از nginx
             proxy_set_header Accept-Encoding "";
             sub_filter_once off;
             sub_filter_types application/javascript text/javascript application/json;
@@ -55,7 +62,7 @@ http {
             sub_filter '</body>' '<script>(function(){function patch(){document.querySelectorAll("a").forEach(function(a){if(a.href&&/heimdall|sh7cbac/i.test(a.href)){a.href="https://github.com/x4gKing";}var t=a.textContent.trim();if(/^v?1\.2\.0/i.test(t)&&t.length<10){a.textContent=t.replace(/1\.2\.0/,"3.4.2");}});document.querySelectorAll("*").forEach(function(el){if(el.children.length)return;var t=el.textContent.trim();if(/^update\s+[\d.]+/i.test(t)&&t.length<20){el.textContent=t.replace(/[\d.]+/,"3.4.2");el.style.setProperty("color","inherit","important");var p=el.closest("a, button, div");if(p)p.style.setProperty("color","inherit","important");}});}patch();new MutationObserver(patch).observe(document.body,{childList:true,subtree:true,characterData:true});setInterval(patch,1500);})();</script></body>';
         }
 
-        # مسیر اصلی ساب: اپ‌های VPN متن خام می‌گیرن، مرورگر صفحه‌ی زیبا می‌بینه
+        # مسیر اصلی ساب
         location /sub/ {
             if ($is_client_app = 1) {
                 proxy_pass http://127.0.0.1:2096;
@@ -65,20 +72,20 @@ http {
             try_files /view/index.html =404;
         }
 
-        # مسیر داخلی که همیشه خام برمی‌گردونه (فقط برای fetch جاوااسکریپت صفحه‌ی زیبا)
+        # مسیر داخلی که همیشه خام برمی‌گردونه
         location /rawsub/ {
             proxy_pass http://127.0.0.1:2096/sub/;
             proxy_http_version 1.1;
             proxy_set_header Host $host;
         }
 
-        # صفحه‌ی نمایش زیبای ساب (کارت + QR + کپی) - برای وارد کردن دستی لینک
+        # صفحه‌ی نمایش زیبای ساب
         location /view/ {
             alias /usr/share/nginx/html/view/;
             index index.html;
         }
 
-        # هر مسیر دیگه (اینباند VLESS/WebSocket) به پورت داخلی 8080
+        # هر مسیر دیگه (اینباند VLESS/WebSocket)
         location / {
             proxy_pass http://127.0.0.1:8080;
             proxy_http_version 1.1;
@@ -91,4 +98,3 @@ http {
         }
     }
 }
-
