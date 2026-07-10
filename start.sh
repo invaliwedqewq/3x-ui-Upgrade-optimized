@@ -3,7 +3,6 @@ set -e
 
 echo "🚀 Starting X-UI + nginx reverse proxy on Railway..."
 
-# استفاده از پورت داینامیک Railway، و در صورت عدم وجود، استفاده از 3000 برای لوکال
 export NGINX_PORT=${PORT:-3000}
 
 cd /usr/local/x-ui
@@ -15,11 +14,13 @@ echo "🔧 Building nginx.conf for dynamic port: $NGINX_PORT"
 envsubst '${NGINX_PORT}' < /etc/nginx/nginx.conf.template > /etc/nginx/nginx.conf
 
 echo "▶️ Starting x-ui in background..."
-./x-ui &
-X_UI_PID=$!
+# اجرای x-ui با نادیده گرفتن خطا تا کانتینر کرش نکند
+./x-ui > /var/log/x-ui/x-ui.log 2>&1 &
 
-sleep 2
+sleep 3
 
 echo "▶️ Starting nginx in foreground on port $NGINX_PORT..."
-nginx -t
+# تست کردن کانفیگ انجینکس
+nginx -t || (echo "❌ Nginx config failed!" && cat /etc/nginx/nginx.conf && exit 1)
+
 exec nginx -g "daemon off;"
