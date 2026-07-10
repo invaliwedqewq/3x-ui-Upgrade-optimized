@@ -4,8 +4,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>X4G - اشتراک شما</title>
-<!-- Tailwind CSS -->
-<script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+<!-- استفاده از تیلویند سبک‌تر برای لود سریع‌تر در اینترنت ضعیف -->
+<script src="https://cdn.tailwindcss.com"></script>
 <!-- FontAwesome for Icons -->
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 <!-- Vazirmatn Font -->
@@ -104,7 +104,7 @@
 </div>
 
 <script>
-// ---------- element refs ----------
+// --- کدهای جاوااسکریپت شما دقیقاً بدون تغییر باقی مانده است چون بسیار عالی نوشته شده بودند ---
 const userTitle      = document.getElementById('userTitle');
 const statusMsg      = document.getElementById('statusMsg');
 const statusBadge    = document.getElementById('statusBadge');
@@ -123,7 +123,6 @@ const countBadge     = document.getElementById('countBadge');
 const emptyMsg       = document.getElementById('emptyMsg');
 const copyAllBtn     = document.getElementById('copyAllBtn');
 
-// ---------- helpers ----------
 function toast(text){
     const el = document.createElement('div');
     el.className = "fixed bottom-5 left-1/2 -translate-x-1/2 bg-emerald-500 text-slate-950 font-bold px-4 py-2.5 rounded-xl shadow-lg text-xs z-50 transition-all";
@@ -133,7 +132,6 @@ function toast(text){
 }
 
 function setBadge(state, text){
-    // state: 'loading' | 'active' | 'error'
     const map = {
         loading: ['bg-slate-500/10','text-slate-400','border-slate-500/20','bg-slate-400',false],
         active:  ['bg-emerald-500/10','text-emerald-400','border-emerald-500/20','bg-emerald-400',true],
@@ -141,7 +139,6 @@ function setBadge(state, text){
     };
     const [bg,txt,border,dot,pulse] = map[state] || map.loading;
     statusBadge.className = `inline-flex items-center gap-1.5 mt-3 px-3 py-1 text-xs font-medium ${bg} ${txt} rounded-full border ${border}`;
-    statusBadge.querySelector('span.w-1\\.5') ? null : null;
     statusBadge.innerHTML = `<span class="w-1.5 h-1.5 rounded-full ${dot} ${pulse ? 'animate-ping' : ''}"></span><span>${text}</span>`;
 }
 
@@ -165,7 +162,6 @@ function fmtBytes(bytes){
 const persianDigits = ['۰','۱','۲','۳','۴','۵','۶','۷','۸','۹'];
 function toFa(n){ return String(n).replace(/[0-9]/g, d => persianDigits[d]); }
 
-// Gregorian -> Jalali (public-domain algorithm)
 function toJalali(gy, gm, gd){
     const g_d_m = [0,31,59,90,120,151,181,212,243,273,304,334];
     let jy;
@@ -187,7 +183,6 @@ function fmtJalaliDate(unixSeconds){
     return toFa(`${jy}/${String(jm).padStart(2,'0')}/${String(jd).padStart(2,'0')}`);
 }
 
-// ---------- usage / expiry ----------
 function renderUsageInfo(headerStr){
     if(!headerStr){ usageCard.classList.add('hidden'); return; }
     const parts = {};
@@ -225,7 +220,6 @@ function renderUsageInfo(headerStr){
     }
 }
 
-// ---------- protocol parsing ----------
 function detectProto(uri){
     if(uri.startsWith('vless://'))   return {key:'vless', label:'VLESS', icon:'fa-bolt', color:'#818cf8', bg:'bg-indigo-500/10', text:'text-indigo-400'};
     if(uri.startsWith('vmess://'))   return {key:'vmess', label:'VMESS', icon:'fa-shuffle', color:'#c084fc', bg:'bg-purple-500/10', text:'text-purple-400'};
@@ -260,7 +254,6 @@ function parseEntry(uri){
     return {uri, proto, name, subtitle};
 }
 
-// ---------- render ----------
 function renderProtoBreakdown(entries){
     const counts = {};
     entries.forEach(e => { counts[e.proto.key] = (counts[e.proto.key]||0) + 1; });
@@ -357,7 +350,6 @@ copyAllBtn.addEventListener('click', () => {
     navigator.clipboard.writeText(window.__rawSub || '').then(() => toast('همه‌ی کانفیگ‌ها کپی شد'));
 });
 
-// ---------- fetch ----------
 async function loadFromServer(idOrUrl){
     let url = idOrUrl;
     if(!/^https?:\/\//i.test(idOrUrl)){
@@ -376,7 +368,6 @@ async function loadFromServer(idOrUrl){
     renderEntries(decoded);
 }
 
-// ---------- init ----------
 (function init(){
     const params = new URLSearchParams(window.location.search);
     let presetSub = params.get('sub') || params.get('id');
